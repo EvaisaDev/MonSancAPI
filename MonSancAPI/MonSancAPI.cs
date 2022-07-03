@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using HarmonyLib;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using Rewired;
@@ -62,9 +61,9 @@ namespace MonSancAPI
 
         public static Dictionary<optionType, int> itemsPerPage = new Dictionary<optionType, int>
         {
-            {optionType.gameplay, 8},
-            {optionType.audio, 8},
-            {optionType.video, 8},
+            {optionType.gameplay, 9},
+            {optionType.audio, 9},
+            {optionType.video, 9},
             {optionType.input, 14}
         };
 
@@ -311,7 +310,7 @@ namespace MonSancAPI
 
             HandlePageButtons();
 
-            self.Captions.transform.localPosition = self.CaptionsOriginalPos + Vector3.right * 40f;
+            self.Captions.transform.localPosition = self.CaptionsOriginalPos + Vector3.right * 60f;
 
 
             //Debug.Log("Rawr0");
@@ -395,7 +394,8 @@ namespace MonSancAPI
         {
 
             self.optionNames.Add(optionName);
-            self.Captions.AddTextItem(caption, column);
+            var captionsMenuItem = self.Captions.AddTextItem(caption, column);
+            captionsMenuItem.SetDisabled(false);
             //self.inputs.Add(input);
 
             customInputs.Add(new InputOption(optionName, delegate (OptionsMenu self2) { return caption; }, axisRange, input, new List<KeyCode>() { KeyCode.None, KeyCode.None }));
@@ -453,7 +453,8 @@ namespace MonSancAPI
                             text = text.Substring(0, 11) + ".";
                         }
                         self.mapIDs.Add(actionElementMap.id);
-                        self.BaseOptions.AddTextItem(text, column * 2 + num);
+                       
+                        self.BaseOptions.AddTextItem(text, column * 2 + num).SetDisabled(false);
                         num++;
                     }
                 }
@@ -470,11 +471,11 @@ namespace MonSancAPI
 
                 if ((int)input == -1)
                 {
-                    self.BaseOptions.AddTextItem(keybinds[optionName].GetBinding(row - 1).ToString(), list_index);
+                    self.BaseOptions.AddTextItem(keybinds[optionName].GetBinding(row - 1).ToString(), list_index).SetDisabled(false);
                 }
                 else
                 {
-                    self.BaseOptions.AddTextItem("None", list_index);
+                    self.BaseOptions.AddTextItem("None", list_index).SetDisabled(false);
                 }
 
                 
@@ -493,8 +494,8 @@ namespace MonSancAPI
 
                 int num = self.BaseOptions.CurrentIndex * 4 + self.BaseOptions.CurrentListIndex;
 
-                Debug.Log("Index: " + self.BaseOptions.CurrentIndex);
-                Debug.Log("List Index: " + self.BaseOptions.CurrentListIndex);
+                //Debug.Log("Index: " + self.BaseOptions.CurrentIndex);
+                //Debug.Log("List Index: " + self.BaseOptions.CurrentListIndex);
 
 
                 
@@ -519,7 +520,7 @@ namespace MonSancAPI
                 {
                     ActionElementMap actionElementMapToReplace = (self.mapIDs[num] >= 0) ? self.ControllerMap.GetElementMap(self.mapIDs[num]) : null;
 
-                    Debug.Log("Selected Keybind: "+ customInputs[num / 2].captionFunction(self));
+                    //Debug.Log("Selected Keybind: "+ customInputs[num / 2].captionFunction(self));
                     
                     self.inputMapper.Start(new InputMapper.Context
                     {
@@ -547,8 +548,8 @@ namespace MonSancAPI
                     var row = self.BaseOptions.CurrentListIndex == 0 || self.BaseOptions.CurrentListIndex == 2 ? 1 : 2;
                     var currentInput = customInputs[fixedNum];
 
-                    Debug.Log("Selected Keybind: " + currentInput.captionFunction(self));
-                    Debug.Log("Selected Row: " + row);
+                    //Debug.Log("Selected Keybind: " + currentInput.captionFunction(self));
+                    //Debug.Log("Selected Row: " + row);
 
 
                     /*
@@ -560,13 +561,13 @@ namespace MonSancAPI
                         actionElementMapToReplace = actionElementMapToReplace
                     });
                     */
-                    Debug.Log("Waiting for input..");
+                    //Debug.Log("Waiting for input..");
 
                     currentMenu = self;
 
                     keybinds[currentInput.optionName].bindIndex = row - 1;
 
-                    Debug.Log(keybinds[currentInput.optionName].bindIndex);
+                    //Debug.Log(keybinds[currentInput.optionName].bindIndex);
 
                     self.BaseOptions.SetLocked(true);
 
@@ -709,7 +710,7 @@ namespace MonSancAPI
 
 
 
-            Debug.Log("Current page: " + selectedPage);
+            //Debug.Log("Current page: " + selectedPage);
             orig(self, menuItem);
         }
 
@@ -739,6 +740,8 @@ namespace MonSancAPI
             previousPageButton.text.text = "Previous";
             self.FooterMenu.AddMenuItem(previousPageButton, -1);
 
+
+           // self.CaptionsOriginalPos = self.Captions.transform.localPosition;
         }
 
 
@@ -762,17 +765,39 @@ namespace MonSancAPI
 
             RegisterOption(optionType.gameplay, "Combat Speed", delegate (OptionsMenu self) { return Utils.LOCA("Combat Speed", ELoca.UI); }, delegate (OptionsMenu self) { return "x " + OptionsManager.Instance.GetCombatSpeedMultiplicator(); }, true, delegate (OptionsMenu self) { return false; });
             RegisterOption(optionType.gameplay, "Axis Threshold", delegate (OptionsMenu self) { return Utils.LOCA("Gamepad Axis Threshold", ELoca.UI); }, delegate (OptionsMenu self) { return OptionsManager.Instance.OptionsData.AxisTreshold * 100f + "%"; }, true, delegate (OptionsMenu self) { return false; });
-            RegisterOption(optionType.gameplay, "Screen Shake", delegate (OptionsMenu self) { return Utils.LOCA("Screen Shake", ELoca.UI); }, delegate (OptionsMenu self) { return self.GetBoolScring(!OptionsManager.Instance.OptionsData.DisableScreenShake); }, true, delegate (OptionsMenu self) { return false; });
-            RegisterOption(optionType.gameplay, "Preview Dodge Chance", delegate (OptionsMenu self) { return Utils.LOCA("Preview Dodge Chance", ELoca.UI); }, delegate (OptionsMenu self) { return self.GetBoolScring(OptionsManager.Instance.OptionsData.ShowDodgeChance); }, true, delegate (OptionsMenu self) { return false; });
+            RegisterOption(optionType.gameplay, "Screen Shake", delegate (OptionsMenu self) { return Utils.LOCA("Screen Shake", ELoca.UI); }, delegate (OptionsMenu self) { return self.GetBoolString(!OptionsManager.Instance.OptionsData.DisableScreenShake); }, true, delegate (OptionsMenu self) { return false; });
+            RegisterOption(optionType.gameplay, "Preview Dodge Chance", delegate (OptionsMenu self) { return Utils.LOCA("Preview Dodge Chance", ELoca.UI); }, delegate (OptionsMenu self) { return self.GetBoolString(OptionsManager.Instance.OptionsData.ShowDodgeChance); }, true, delegate (OptionsMenu self) { return false; });
             RegisterOption(optionType.gameplay, "Controller Icons", delegate (OptionsMenu self) { return Utils.LOCA("Controller Icons", ELoca.UI); }, delegate (OptionsMenu self) { return Utils.LocalizeString(OptionsManager.Instance.GetControllerGlyphPreference().ToString(), true); }, false, delegate (OptionsMenu self) { return false; });
+            RegisterOption(optionType.gameplay, "Timer", delegate (OptionsMenu self) { return Utils.LOCA("Timer", ELoca.UI); }, delegate (OptionsMenu self) {
+                if (self.ingameMenu)
+                {
+                    return self.GetBoolString(PlayerController.Instance.TimerEnabled);
+                }
+                else
+                {
+                    return Utils.LOCA("Ingame", ELoca.UI);
+                }
+            }, true, delegate (OptionsMenu self) {
+                return !self.ingameMenu;
+            });
+
+            RegisterOption(optionType.gameplay, "NGOptions", delegate (OptionsMenu self) { return Utils.LOCA("Advanced Game Modes", ELoca.UI); }, delegate (OptionsMenu self) {
+                return self.GetBoolString(OptionsManager.Instance.OptionsData.AlternateGameModes);
+            }, true, delegate (OptionsMenu self) {
+                return self.ingameMenu;
+            });
 
             RegisterOption(optionType.audio, "Music Volume", delegate (OptionsMenu self) { return Utils.LOCA("Music Volume", ELoca.UI); }, delegate (OptionsMenu self) { return OptionsManager.Instance.OptionsData.VolumeBGM * 100f + "%"; }, true, delegate (OptionsMenu self) { return false; });
             RegisterOption(optionType.audio, "SFX Volume", delegate (OptionsMenu self) { return Utils.LOCA("SFX Volume", ELoca.UI); }, delegate (OptionsMenu self) { return OptionsManager.Instance.OptionsData.VolumeSFX * 100f + "%"; }, true, delegate (OptionsMenu self) { return false; });
-            RegisterOption(optionType.audio, "Battle Theme", delegate (OptionsMenu self) { return Utils.LOCA("Battle Theme", ELoca.UI); }, delegate (OptionsMenu self) { return self.GetBoolScring(OptionsManager.Instance.OptionsData.AlternativeBattleTheme); }, true, delegate (OptionsMenu self) { return false; });
+            RegisterOption(optionType.audio, "Battle Theme", delegate (OptionsMenu self) { return Utils.LOCA("Alternative Battle Theme", ELoca.UI); }, delegate (OptionsMenu self) { return self.GetBoolString(OptionsManager.Instance.OptionsData.AlternativeBattleTheme); }, true, delegate (OptionsMenu self) { return false; });
+            RegisterOption(optionType.audio, "Snowy Theme", delegate (OptionsMenu self) { return Utils.LOCA("Alt. 'Snowy Peaks' Theme", ELoca.UI); }, delegate (OptionsMenu self) { return self.GetBoolString(OptionsManager.Instance.OptionsData.AlternativeSnowyPeaksTheme); }, true, delegate (OptionsMenu self) { return false; });
+            RegisterOption(optionType.audio, "Stronghold Theme", delegate (OptionsMenu self) { return Utils.LOCA("Alt. 'Keeper's Stronghold' Theme", ELoca.UI); }, delegate (OptionsMenu self) { return self.GetBoolString(OptionsManager.Instance.OptionsData.AlternativeStrongholdTheme); }, true, delegate (OptionsMenu self) { return false; });
+
 
             RegisterOption(optionType.video, "Resolution", delegate (OptionsMenu self) { return Utils.LOCA("Resolution", ELoca.UI); }, delegate (OptionsMenu self) { return Screen.width + " x " + Screen.height; }, false, delegate (OptionsMenu self) { return false; });
             RegisterOption(optionType.video, "Screen Mode", delegate (OptionsMenu self) { return Utils.LOCA("Screen Mode", ELoca.UI); }, delegate (OptionsMenu self) { return self.GetScreenModeString(OptionsManager.Instance.GetCurrentScreenMode()); }, false, delegate (OptionsMenu self) { return false; });
- 
+
+
             /*
             for(var i = 0; i < 23; i++)
             {
@@ -843,7 +868,7 @@ namespace MonSancAPI
             item.column = 0;
             inputOptions.Add(item);
 
-            item = new InputOption("Keyboard", delegate(OptionsMenu self) { return Utils.LOCA("Keyboard", ELoca.UI); }, AxisRange.Full, EInputType.ToggleDirectKeyboardInput, new List<KeyCode>() {KeyCode.None, KeyCode.None});
+            item = new InputOption("Keyboard", delegate(OptionsMenu self) { return Utils.LOCA("Text Input", ELoca.UI); }, AxisRange.Full, EInputType.ToggleDirectKeyboardInput, new List<KeyCode>() {KeyCode.None, KeyCode.None});
             item.column = 1;
             inputOptions.Add(item);
 
@@ -940,7 +965,7 @@ namespace MonSancAPI
                     if (index <= itemsPerPage[type] - 1)
                     {
                         // Debug.Log("rawr");
-                        Debug.Log(menuOptions[i].optionName);
+                        //Debug.Log(menuOptions[i].optionName);
                         if (paginatedMenuOptions[type].ElementAtOrDefault(totalPages) == null)
                         {
                             // Debug.Log("rawr2");
